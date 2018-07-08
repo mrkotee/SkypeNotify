@@ -58,6 +58,8 @@ class TimerParser():
                 	)
             except:
                 print(_btl_time)
+                break
+                
             if int(_btl_time[0]) < dt.now().hour:
                 dtimer.replace(day=dt.now().day+1)
             timer = dtimer.timestamp()
