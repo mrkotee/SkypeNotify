@@ -57,7 +57,7 @@ class TimerParser():
                 	second=int(_btl_time[2])
                 	)
             except Exception as e:
-                print('{}, error: {}\n {}'.format(dt.now().time(), e, _btl_time)
+                print('{}, error: {}\n {}'.format(dt.now().time(), e, _btl_time))
                 break
                 
             if int(_btl_time[0]) < dt.now().hour:
