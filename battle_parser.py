@@ -54,14 +54,14 @@ class TimerParser():
                 dtimer = dt.now().replace(
                 	hour=int(_btl_time[0]), 
                 	minute=int(_btl_time[1]), 
-                	second=int(_btl_time[2])-3
+                	second=int(_btl_time[2])
                 	)
-            except:
-                print(_btl_time)
+            except Exception as e:
+                print('{}, error: {}\n {}'.format(dt.now().time(), e, _btl_time)
                 break
                 
             if int(_btl_time[0]) < dt.now().hour:
-                dtimer.replace(day=dt.now().day+1)
+                dtimer = dtimer.replace(day=dt.now().day+1)
             timer = dtimer.timestamp()
             btl_time = ':'.join(_btl_time)
 
@@ -70,7 +70,7 @@ class TimerParser():
                     self.part_resurs[int(our_part)-1], 
                     self.part_resurs[int(enemy_part)-1]
                     )
-            if btl_text not in self.btl_timers.values():
+            if btl_text not in self.btl_timers.values() and time.time()+100 > timer:
                 self.btl_timers[timer] = btl_text
 
         browser.session.close()
