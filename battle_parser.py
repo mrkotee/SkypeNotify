@@ -35,7 +35,7 @@ class TimerParser():
         self.btl_timers = {}
 
     def parse_timers(self):
-        browser = RoboBrowser(history=True, cache=True, user_agent=self.USERAGENT)
+        browser = RoboBrowser(history=True, cache=True, parser='lxml', user_agent=self.USERAGENT)
         browser.open('http://avatar.botva.ru/')
 
         loginform = browser.get_form(action='login.php')
@@ -50,6 +50,7 @@ class TimerParser():
             enemy_part = re.findall(r'data-enemy_id="(\d+)"', str(el))[0]
             our_part = re.findall(r'data-loc_id="(\d+)"', str(el))[0]
             _btl_time = re.findall(r'(\d+):(\d+):(\d+)', str(el))[0]
+            
             try:
                 dtimer = dt.now().replace(
                 	hour=int(_btl_time[0]), 
@@ -57,11 +58,12 @@ class TimerParser():
                 	second=int(_btl_time[2])
                 	)
             except Exception as e:
-                print('{}, error: {}\n {}'.format(dt.now().time(), e, _btl_time)
+                print('{}, error: {}\n {}'.format(dt.now().time(), e, _btl_time))
                 break
                 
             if int(_btl_time[0]) < dt.now().hour:
                 dtimer = dtimer.replace(day=dt.now().day+1)
+
             timer = dtimer.timestamp()
             btl_time = ':'.join(_btl_time)
 
@@ -70,7 +72,9 @@ class TimerParser():
                     self.part_resurs[int(our_part)-1], 
                     self.part_resurs[int(enemy_part)-1]
                     )
-            if btl_text not in self.btl_timers.values() and time.time()+100 > timer:
+
+            if btl_text not in self.btl_timers.values() and timer > time.time()+100:
+
                 self.btl_timers[timer] = btl_text
 
         browser.session.close()
@@ -98,8 +102,8 @@ if __name__ == '__main__':
             parser.parse_timers()
             # timeout = time.time() + 600
             timeout = time.time() + 100
+            print(parser.btl_timers)
 
-        # сделать проверку ключа в словаре!
-        parser.check()
+        print('message: {}'.format(parser.check()))
 
         time.sleep(10)
