@@ -20,7 +20,9 @@ while True:
 
     else:
         if time.time() > timeout:
-            parser.parse_timers()
+            if not parser.parse_timers():
+                continue
+                
             timeout = time.time() + 600
             # timeout = time.time() + 100
 
