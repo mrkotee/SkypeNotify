@@ -33,16 +33,24 @@ class TimerParser():
     def __init__(self):
 
         self.btl_timers = {}
+        self.update_timer = False
 
     def parse_timers(self):
         browser = RoboBrowser(history=True, cache=True, parser='lxml', user_agent=self.USERAGENT)
         browser.open('http://avatar.botva.ru/')
 
-        loginform = browser.get_form(action='login.php')
-        loginform["email"] = botva_login
-        loginform["password"] = botva_pass
-        browser.session.headers['Referer'] = 'http://avatar.botva.ru/'
-        browser.submit_form(loginform)
+        try:
+	        loginform = browser.get_form(action='login.php')
+	        loginform["email"] = botva_login
+	        loginform["password"] = botva_pass
+	        browser.session.headers['Referer'] = 'http://avatar.botva.ru/'
+	        browser.submit_form(loginform)
+
+	    except TypeError:
+	    	if self.check_updateworks(browser):
+
+	    		return False
+
 
         browser.open('http://avatar.botva.ru/conflict.php')
 
@@ -79,19 +87,40 @@ class TimerParser():
 
         browser.session.close()
 
+        return True
+
     def check(self):
         timers = self.btl_timers.copy()
         message = False
         for t in timers.keys():
             if time.time()+100 > t:
-                print('*'*50)
-                print(self.btl_timers[t])
                 message = self.btl_timers[t]
                 self.btl_timers.pop(t)
-                print(dt.now().time())
-                print(self.btl_timers)
-                print('*'*50)
+                
         return message
+
+    def check_updateworks(self, browser=False):
+    	if not browser:
+    		browser = RoboBrowser(history=True, cache=True, parser='lxml', user_agent=self.USERAGENT)
+        	browser.open('http://avatar.botva.ru/')
+
+		text = browser.select
+		time = re.findall(r'Ориентировочное время включения - (\d{2}):(\d{2})', str(text))
+
+		if time:
+			hour, minute = time[0][0], time[0][1]
+			update_time = dt.now().replace(hour=int(hour), minute=int(minute))
+
+			self.update_timer = update_time.timestamp()
+
+			self.btl_timers = {}
+
+			return True
+
+		elif self.update_timer:
+			self.update_timer = False
+
+		return False
 
 
 if __name__ == '__main__':
