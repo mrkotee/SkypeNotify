@@ -66,6 +66,8 @@ class TimerParser():
             loginform["password"] = botva_pass
             browser.session.headers['Referer'] = 'http://avatar.botva.ru/'
             browser.submit_form(loginform)
+            
+            # print('login suc')
 
         except TypeError:
             if self.check_updateworks(browser):
@@ -81,9 +83,15 @@ class TimerParser():
 
         if 'options.php' in browser.url:
             print('need new bot')
+            open("need_new_bot", "w").write("need")
             return False
 
+        # print('conflict suc')
+
         for el in browser.find_all(class_='status1'):
+
+            # print(el)
+
             enemy_part = re.findall(r'data-enemy_id="(\d+)"', str(el))[0]
             our_part = re.findall(r'data-loc_id="(\d+)"', str(el))[0]
             _btl_time = re.findall(r'(\d+):(\d+):(\d+)', str(el))[0]
@@ -110,12 +118,24 @@ class TimerParser():
                     self.part_resurs[int(enemy_part)-1]
                     )
 
+            # print(btl_text)
+
 
             if btl_text not in self.btl_timers.values() and timer > time.time()+100:
 
                 self.btl_timers[timer] = btl_text
 
         browser.session.close()
+
+        # print('session close')
+
+        timers = self.btl_timers.copy() # del old msgs from base
+        message = False
+        for t in timers.keys():
+            if time.time() > float(t):
+                message = self.btl_timers[t]
+                self.btl_timers.pop(t)
+                self.write_btl_to_file()
 
         return True
 
@@ -159,13 +179,14 @@ if __name__ == '__main__':
     LOG_FILENAME = 'btl_parser.log'
     # logging.getLogger("requests.packages.urllib3")
     # logging.propagate = True
-    logging.basicConfig(filename=LOG_FILENAME, level=logging.DEBUG,
+    logging.basicConfig(filename=LOG_FILENAME, level=logging.INFO,
                         format=u'%(levelname)-8s [%(asctime)s]  %(message)s')
     logTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
     parser = TimerParser()
     try:
         parser.read_btl_file()
+        # print(str(parser.btl_timers))
     except FileNotFoundError:
         parser.write_btl_to_file()
     timeout = 0
@@ -188,7 +209,14 @@ if __name__ == '__main__':
         parser.check_updateworks()
 
     else:
-        parser.parse_timers()
+        for _ in range(3):
+            parser.parse_timers()
+
+            if parser.btl_timers:
+                break
+                
+            time.sleep(5)
+
 
     parser.write_btl_to_file()
     #     if time.time() > timeout:
