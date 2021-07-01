@@ -2,7 +2,7 @@ import re, time
 from robobrowser import RoboBrowser
 from datetime import datetime as dt
 from datetime import timedelta
-from settings import botva_pass, botva_login, btl_filepath
+from settings import botva_pass, botva_login, btl_filepath, bot_dir_path
 from requests.exceptions import ConnectionError
 import json
 import logging
@@ -84,6 +84,27 @@ class TimerParser():
         if 'options.php' in browser.url:
             print('need new bot')
             open("need_new_bot", "w").write("need")
+
+            from registration import registration
+            from settings import name_id
+            email = botva_login.replace(str(name_id), str(name_id+1))
+            names = ["MrSmith-%s" % str(name_id+1),
+                    ]
+            with open(bot_dir_path + "settings.py", 'r') as f:
+                st = f.read()
+                start_login = st.find('\nbotva_login')
+                end_login = st.find('\n', start_login+1)
+
+                actual_login = st[start_login:end_login]
+
+                st = st[:start_login+1] + "# " + st[start_login+1:end_login] + "\n" + "botva_login = " + "'" + email + "'" + st[end_login:]
+                st = st.replace("name_id = " + str(name_id), "name_id = " + str(name_id+1))
+
+            registration(names, email, botva_pass)
+
+            with open(bot_dir_path + "settings.py", 'w') as f:
+                f.write(st)
+
             return False
 
         # print('conflict suc')

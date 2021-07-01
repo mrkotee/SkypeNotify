@@ -201,7 +201,7 @@ if __name__ == "__main__":
         registration(names, email, botva_pass, test)
 
     if 'new' in sys.argv:
-        with open("settings_test.py", 'w') as f:
+        with open("settings.py", 'w') as f:
             f.write(st)
 
     # print('fail')
