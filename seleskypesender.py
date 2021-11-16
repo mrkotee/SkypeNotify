@@ -7,13 +7,13 @@ from selenium.webdriver.support import expected_conditions as EC
 import time
 
 
-class SkypeSender():
+class SkypeSender:
 
     def __init__(self):
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
 
-		# options.add_argument('window-size=1200x600')
+        # options.add_argument('window-size=1200x600')
         
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-gpu")
@@ -96,11 +96,9 @@ if __name__ == '__main__':
 
     skypesender = SkypeSender()
     skypesender.login(skype_login, skype_pass)
-    # chat_grops = skype_groups
 
     skypesender.select_chat(skype_admin)
     skypesender.send_message(f'start {time.time()}')
 
     time.sleep(1)
     skypesender.driver.quit()
-
