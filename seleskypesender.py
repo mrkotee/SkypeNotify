@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -79,9 +80,11 @@ class SkypeSender():
         #             except:
         #                 pass
         #         break
-
-        chat = self.driver.find_element_by_xpath("//div[contains(@aria-label, '{chatname}')]".format(chatname=chatname))
-        chat.click()
+        try:
+            chat = self.driver.find_element_by_xpath("//div[contains(@aria-label, '{chatname}')]".format(chatname=chatname))
+            chat.click()
+        except WebDriverException:
+            self.driver.save_screenshot("screenWebDriverException.png")
 
 
     def send_message(self, message):

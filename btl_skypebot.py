@@ -1,3 +1,4 @@
+from selenium.common.exceptions import WebDriverException
 from battle_parser import TimerParser
 from seleskypesender import SkypeSender
 import time
@@ -50,8 +51,14 @@ def main():
         msg = parser.check()
         if msg:
             for chat in chat_grops:
-                skypesender.select_chat(chat)
-                skypesender.send_message(msg)
+                try:
+                    skypesender.select_chat(chat)
+                    skypesender.send_message(msg)
+                except ConnectionError:
+                    skypesender.driver.navigate().refresh()
+                    time.sleep(10)
+                    skypesender.select_chat(chat)
+                    skypesender.send_message(msg)
 
         if parser.update_timer:
             if not updates_msg_sended:
@@ -97,5 +104,9 @@ def main():
 
         time.sleep(10)
 
-
+# try:
 main()
+# except Exception as e:
+#    print(e)
+#    open("/root/need_new_bot", "w").write("need")
+#    raise ConnectionError
