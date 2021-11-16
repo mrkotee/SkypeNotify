@@ -11,7 +11,7 @@ class SkypeSender():
 
     def __init__(self):
         options = webdriver.ChromeOptions()
-        # options.add_argument("--headless")
+        options.add_argument("--headless")
 
 		# options.add_argument('window-size=1200x600')
         
