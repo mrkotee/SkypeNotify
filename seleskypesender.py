@@ -1,5 +1,5 @@
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException
+from selenium.common.exceptions import WebDriverException, TimeoutException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -15,33 +15,46 @@ class SkypeSender():
 
 		# options.add_argument('window-size=1200x600')
         
-        # options.add_argument("--no-sandbox")
-        # options.add_argument("--disable-gpu")
-        # options.add_argument("--disable-extensions")
-        # options.add_argument("--disable-dev-shm-usage")
-        self.driver = webdriver.Chrome(chrome_options=options)
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--disable-extensions")
+        options.add_argument("--disable-dev-shm-usage")
+        self.driver = webdriver.Chrome(options=options)
         # self.driver = webdriver.Chrome()
         # self.driver.set_window_size(1024, 780)
 
     def login(self, login, password):
         self.driver.get('https://web.skype.com/')
-        # WebDriverWait(self.driver, 20).until(
-        #     EC.presence_of_element_located((By.ID, 'username')))
-        time.sleep(5)
-        while True:
+
+        # try to find login field by id or name
+        for _ in range(10):  # check for 20 seconds (10 times by 2 sec)
             try:
-                self.driver.find_element(By.ID, 'username').send_keys(login + Keys.ENTER)
+                login_field = WebDriverWait(self.driver, 1).until(
+                    EC.presence_of_element_located((By.ID, 'username'))  # id='i0116'
+                )
                 break
-            except:
-                self.driver.find_element(By.NAME, 'loginfmt').send_keys(login + Keys.ENTER)
+            except TimeoutException:
+                pass
+            try:
+                login_field = WebDriverWait(self.driver, 1).until(
+                    EC.presence_of_element_located((By.NAME, 'loginfmt'))
+                )
                 break
+            except TimeoutException:
+                pass
 
-        time.sleep(4)
+        login_field.send_keys(login + Keys.ENTER)  # write login
 
-        self.driver.find_element(By.ID, 'i0118').send_keys(password + Keys.ENTER)
-        
-        time.sleep(0.5)
+        time.sleep(1.5)  # wait site script start work correctly
+        # search pass field
+        pass_field = WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.ID, 'i0118'))
+        )
+        pass_field.send_keys(password + Keys.ENTER)  # entering pswrd
+
+        # working with alerts
         try:
+            time.sleep(0.5)
             self.driver.find_element(By.ID, 'KmsiCheckboxField').click()
             time.sleep(0.2)
             self.driver.find_element(By.ID, 'idBtn_Back').click()
@@ -51,7 +64,7 @@ class SkypeSender():
         WebDriverWait(self.driver, 30).until(
             EC.presence_of_element_located((By.XPATH, "//div[contains(@role, 'button')]")))
         time.sleep(4)
-        btns = self.driver.find_elements_by_xpath("//div[contains(@role, 'button')]")
+        btns = self.driver.find_elements(By.XPATH, "//div[contains(@role, 'button')]")
         for btn in btns:
             try:
                 btn.click()
@@ -62,7 +75,7 @@ class SkypeSender():
 
     def select_chat(self, chatname):
         try:
-            chat = self.driver.find_element(By.XPATH, "//div[contains(@aria-label, '{chatname}')]".format(chatname=chatname))
+            chat = self.driver.find_element(By.XPATH, f"//div[contains(@aria-label, '{chatname}')]")
             chat.click()
         except WebDriverException:
             self.driver.save_screenshot("screenWebDriverException.png")
@@ -86,7 +99,8 @@ if __name__ == '__main__':
     # chat_grops = skype_groups
 
     skypesender.select_chat(skype_admin)
-    skypesender.send_message('start')
+    skypesender.send_message(f'start {time.time()}')
 
+    time.sleep(1)
     skypesender.driver.quit()
 
